@@ -4,14 +4,17 @@
 \alias{losses}
 \title{Calculate losses over multiple data possibilities}
 \usage{
-losses(XY_base = c(1, 1, 1, 1), k = 1, my_loss, ...)
+losses(XY_base = c(1, 1, 1, 1), k = 1, f = my_loss, strategies = NULL,
+  ...)
 }
 \arguments{
 \item{XY_base}{XY data prior to considering K data}
 
 \item{k}{number of clues sought}
 
-\item{my_loss}{A loss function}
+\item{f}{A loss function}
+
+\item{strategies}{if only a subset of strategies are examined strategies can be indicated  of the form "0-0-1-1" meaning seek one clue for 10 cases and one for 11 cases, or more generally c("1-1-0-0", "0-0-1-1"). Use this option with caution to be sure that naming of strategies is correct and unique}
 }
 \description{
 Calculate losses over multiple data possibilities
@@ -21,5 +24,9 @@ my_loss <- function(model){
 D <-extract(model, pars='abcd')
 return(var(D$abcd[,2]-D$abcd[,1]))
 }
-losses(my_loss = my_loss)
+losses(f = my_loss)
+losses(strategies = c("1-0-0-0","0-0-0-1"))
+losses(strategies = c("1-0-0-1"))
+losses(strategies = c("1-0-0-1"), k = 2)
+
 }

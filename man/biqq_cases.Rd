@@ -2,10 +2,7 @@
 % Please edit documentation in R/biqq_cases.R
 \name{biqq_cases}
 \alias{biqq_cases}
-\title{Function to count the set in each permutation of X,Y,K (Data in that order) and output summary
-Consisent with this naming ordering from Stan Code:
- int<lower=0> XY[4];         // summary data, providing number of XY: order: 00, 01, 10, 11
- int<lower=0> XYK[8];        // summary data, providing number of XYK: order 000, 001, 010,...}
+\title{Function to count the set in each permutation of X,Y,K}
 \usage{
 biqq_cases(D)
 }
@@ -13,10 +10,9 @@ biqq_cases(D)
 \item{D}{a dataframe or matrix with three columns, X, Y, K}
 }
 \description{
-Function to count the set in each permutation of X,Y,K (Data in that order) and output summary
-Consisent with this naming ordering from Stan Code:
- int<lower=0> XY[4];         // summary data, providing number of XY: order: 00, 01, 10, 11
- int<lower=0> XYK[8];        // summary data, providing number of XYK: order 000, 001, 010,...
+Data given in order XYK. Output summary consisent with this naming ordering from Stan Code:
+ XY: order: 00, 01, 10, 11
+ XYK: order 000, 001, 010,...
 }
 \examples{
 biqq_cases(D = data.frame(X = c(0,1,1), Y = c(1,1,0), K = c(NA, NA, 1)))

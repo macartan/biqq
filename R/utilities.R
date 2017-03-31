@@ -13,6 +13,25 @@ perm <- function (v) {
   }
 
 
+#' Calculate a statistic givrn some model and a function f.
+#' 
+#' Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
+#' @param model a fitted biqq model
+#' @param L a loss function, defined over the dataframe extracted from model L. Defaults to posterior variance of ATE
+#' @export
+#' @examples
+#' model <- biqq()
+#' my_loss(model, f = function() {var(abcd[,2])})
+
+my_loss <- function(model, 
+                    L = function(D) {var(D$abcd[,2]-D$abcd[,1])}
+            ){
+              D <-extract(model, pars='abcd')
+              out <- L(D)
+              return(out)
+            }
+
+
 #' Returns a matrix of XY, XYK data
 #'
 #' Given XY_base and number of clues sought.
@@ -46,23 +65,37 @@ possible_XYK <- function(XY_base  = c(1,1,1,1), k=1){
 #' Calculate losses over multiple data possibilities
 #' @param  XY_base XY data prior to considering K data
 #' @param  k number of clues sought
-#' @param  my_loss A loss function
+#' @param  f A loss function
+#' @param  strategies if only a subset of strategies are examined strategies can be indicated  of the form "0-0-1-1" meaning seek one clue for 10 cases and one for 11 cases, or more generally c("1-1-0-0", "0-0-1-1"). Use this option with caution to be sure that naming of strategies is correct and unique
 #' @export
 #' @examples
 #' my_loss <- function(model){
 #' D <-extract(model, pars='abcd')
 #' return(var(D$abcd[,2]-D$abcd[,1]))
 #' }
-#' losses(my_loss = my_loss)
-
-losses <- function(XY_base  = c(1,1,1,1), k=1, my_loss, ...){
+#' losses(f = my_loss)
+#' losses(strategies = c("1-0-0-0","0-0-0-1"))
+#' losses(strategies = c("1-0-0-1"))
+#' losses(strategies = c("1-0-0-1"), k = 2)
+#' 
+losses <- function(XY_base  = c(1,1,1,1), k=1,  f = my_loss, strategies = NULL, ...){
   D <- possible_XYK(XY_base  = XY_base, k = k)
+  
+  if(!is.null(strategies)){
+  x <- t(D)
+  s <- sapply(1:nrow(x), function(j) {
+    +     c(x[j,5]+x[j,6], x[j,7]+x[j,8], x[j,9]+x[j,10], x[j,11]+x[j,12])})
+  s <- apply(s, 2, paste, collapse = "-")
+  if(sum(s %in% strategies)==0)  stop("Strategy not found in list of possible strategies. Check assumptions on base XY data or value of k.")
+  D <- D[, s %in% strategies]
+  }
+  
   XYs  <- D[1:4,]
   XYKs <- D[5:12,]
 
   out <- sapply(1:ncol(D), function(j) {
     c(XYs[,j], XYKs[,j],
-      my_loss(biqq(XY = XYs[,j], XYK = XYKs[,j], ...)))
+      f(biqq(XY = XYs[,j], XYK = XYKs[,j], ...)))
   })
   out <- t(out)
   colnames(out) <- c("00","01","10","11","000","001","010","011","100","101","110","111", "post var")
@@ -99,6 +132,53 @@ prob_k_seen <- function(model, k = c(1,1,1,1)){
 }
 
 
+
+
+#' Function to identify possible case selection strategies and assess expected gains
+#' 
+#' Assesses the set of strategies that could be implemented by looking for clues in  k cases given existing X,Y data, recorded in a 4-vector, `XY_base`. The output lists the possible strategies, assesses the probability of different data realizations that coudl result from each strategy, the posterior variance that arises in each case, and the overall expected posterior variance from each strategy under consideration. 
+#' @param k A scalar saying how many clues are to be sought in total
+#' @param  XY_base is the data before considering K data
+#' @param  strategies optional: if only a subset of strategies are examined strategies can be indicated  of the form "0-0-1-1" meaning seek one clue for 10 cases and one for 11 cases, or more generally c("1-1-0-0", "0-0-1-1"). Use this option with caution to be sure that naming of strategies is correct and unique
+#' @return A list
+#' @export
+#' @examples
+#' Expected_Var(k = 1, XY_base = rep(1,4), chains = 2)
+#' Expected_Var(k = 1, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
+
+Expected_Var <- function(k = 1, XY_base = rep(1,4), strategies = NULL, ...){
+  model <- biqq(XY = XY_base, ...)
+  x <- losses(k=k, XY_base = XY_base, strategies = strategies, ...)
+  
+  g <- function(j, 
+                m = model, 
+                strategy =  c(x[j,5]+x[j,6], x[j,7]+x[j,8], x[j,9]+x[j,10], x[j,11]+x[j,12])) { 
+    p <- prob_k_seen(model = m, k = strategy)
+    prod(
+      p[p$X==0 & p$Y==0,4][(x[j,6]+1)],
+      p[p$X==0 & p$Y==1,4][(x[j,8]+1)],
+      p[p$X==1 & p$Y==0,4][(x[j,10]+1)],
+      p[p$X==1 & p$Y==1,4][(x[j,12]+1)])}
+  
+  if(is.null(strategies)){                     
+    strategies <- sapply(1:nrow(x), function(j) {
+      c(x[j,5]+x[j,6], x[j,7]+x[j,8], x[j,9]+x[j,10], x[j,11]+x[j,12])})
+    strategies <- apply(strategies, 2, paste, collapse = "-")}
+  
+  # Probability of each outcome for each strategy
+  p_each <- sapply(unique(strategies), function(s) {
+    sapply((1:nrow(x))[strategies==s], g)
+  })
+  
+  # Expected posterior variance associate with each strategy
+  var_each <- sapply(unique(strategies), function(s) {x[strategies==s, 13]})
+  
+  # Expected posterior variance associate with each strategy
+  Ex_Post_var <- sapply(unique(strategies), function(s) {
+    sapply((1:nrow(x))[strategies==s], g)%*%x[strategies==s, 13]
+  })
+  return(list(unique(strategies), p_each, var_each, Ex_Post_var))
+}
 
 #' Generate Case Frequencies from Data
 #'
