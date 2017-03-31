@@ -1,0 +1,17 @@
+Package: biqq
+Title: Package for BIQQ analysis as described in Jacobs, Humphreys (2016)
+Version: 0.0.1
+Authors@R: c(person("Macartan", "Humphreys", email = "macartan@gmail.com", role = c("aut", "cre")),
+             person("Alan", "Jacobs", email = "alan.jacobs@ubc.ca", role = c("aut")))
+Description: Package provides necessary functions to run application examples from the paper, as well as framework for applying BIQQ to user-defined Stan program.
+Depends:
+    R (>= 3.3.1),
+    rstan,
+    parallel,
+    ggplot2
+Suggests:
+    testthat
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
