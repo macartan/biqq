@@ -4,7 +4,8 @@
 \alias{Expected_Var}
 \title{Function to identify possible case selection strategies and assess expected gains}
 \usage{
-Expected_Var(k = 1, XY_base = rep(1, 4), strategies = NULL, ...)
+Expected_Var(k = 1, XY_base = rep(1, 4), strategies = NULL, f = my_loss,
+  name = "Results", ...)
 }
 \arguments{
 \item{k}{A scalar saying how many clues are to be sought in total}
@@ -22,4 +23,5 @@ Assesses the set of strategies that could be implemented by looking for clues in
 \examples{
 Expected_Var(k = 1, XY_base = rep(1,4), chains = 2)
 Expected_Var(k = 1, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
+Expected_Var(k = 2, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
 }
