@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{my_loss}
 \alias{my_loss}
-\title{Calculate a statistic givrn some model and a function f.}
+\title{Calculate a statistic given some model and a function f.}
 \usage{
 my_loss(model, L = function(D) {     var(D$abcd[, 2] - D$abcd[, 1]) })
 }

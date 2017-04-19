@@ -1,12 +1,12 @@
 
-#' Function to count the set in each permutation of X,Y,K 
-#' 
+#' Function to count the set in each permutation of X,Y,K
+#'
 #' Data given in order XYK. Output summary consisent with this naming ordering from Stan Code:
 #'  XY: order: 00, 01, 10, 11
 #'  XYK: order 000, 001, 010,...
 #' @param D   a dataframe or matrix with three columns, X, Y, K
 #' @keywords Conversion biqq
-#'
+#' @export
 #' @examples biqq_cases(D = data.frame(X = c(0,1,1), Y = c(1,1,0), K = c(NA, NA, 1)))
 
 biqq_cases = function(D){

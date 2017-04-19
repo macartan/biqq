@@ -13,7 +13,206 @@ perm <- function (v) {
   }
 
 
-#' Calculate a statistic givrn some model and a function f.
+#' Declare a structural model
+#'
+#' @param var_functions A list of structural equations
+#' @param var_names An optional list of node names
+#' @param P An optional list of node names
+#' @export
+#' @examples
+#' biqq_model()
+
+biqq_model <- function(
+  var_functions =
+    list( f_S = function(U,V) U[1] < .5,
+          f_X = function(U,V) U[2] < .5,
+          f_C = function(U,V) (1- (V[1]*V[2]))*(U[3]>.2) +(U[3]<.1),
+          f_R = function(U,V) V[2]*V[3]*(U[4]>.2) + (U[4]<.1),
+          f_Y = function(U,V) V[3]*V[4]*(U[5]>.2)+ (U[5]<.1)
+    ),
+  var_names = 1:length(var_functions),
+  P =  function() runif(length(var_functions))){
+  model <- list(var_names = var_names, var_functions = var_functions, P =  P)
+  return(model)
+}
+
+
+#' Function to generate a world from a structural model
+#'
+#' @param model A model, made using biqq_model
+#' @param U  A context. Generally generated using model$P()
+#' @param do an optional  list of do operations on nodes
+#' @export
+#' @examples
+#' M <- biqq_model()
+#' biqq_world(M, M$P())
+
+biqq_world <- function(model, U, do = NULL){
+  n <- length(model$var_names)
+  if(!is.null(do)) for(i in 1:n){ if(!is.na(do[i])) {model$var_functions[[i]] <- function(U,V)  do[i]}}
+  V <- rep(NA,n)
+  for(i in 1:n) V[i] <- model$var_functions[[i]](U,V)
+  names(V) = model$var_names
+  unlist(V)
+}
+
+
+
+#' A function to figure out which worlds satisfy some query
+#'
+#' @param model A model, made using biqq_model
+#' @param operations  A set of operations
+#' @param query_v A query defined on outcomes on observables, V
+#' @param sims optional number of simulations for draws
+#' @param U optional matrix of contexts (worlds)
+#' @param plotit Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE
+#' @export
+#'
+#' @examples
+#' M <- biqq_model()
+#' biqq_world(M, M$P())
+#' biqq_which(
+#'    model,
+#'    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
+#'    query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
+#'    sims = 500,
+#'    plotit = TRUE)
+#'
+
+biqq_which <- function(
+  model,
+  operations,
+  query_v,
+  sims = NULL,
+  U = NULL, # Optionally provide a matrix of worlds: Useful for keeping U fixed under different experiments. Each U should be a single number, not a vector.
+  plotit = FALSE,
+  col1 = "red",
+  col2 = "blue") {
+
+  nU <- length(model$P())
+  if(is.null(U)) U <- (replicate(sims, model$P()))
+  sims <- ncol(U)
+  V <-  matrix(NA, sims, nU)
+  A  <- rep(NA, sims)
+  k  <- length(operations)
+
+  for(j in 1:sims){
+    u  <- U[,j]
+    v  <- biqq_world(model, u)
+    x  <- list()
+    a  <- rep(NA, k)
+    for(i in 1:k){
+      x[[i]]  <- biqq_world(model, u, do = operations[[i]])
+    }
+    A[j]  <- query_v(x)
+    V[j,] <- v
+  }
+
+  V <- as.data.frame(V)
+  colnames(V) <- model$var_names
+
+  result <- list(U=U, V=V, A=A)
+
+  if(plotit) { if(dim(result[[1]])[1]>2){stop("graphing currently only possible for U shocks on 2 vars")
+    } else {
+      pairs(t(result[[1]]), col = ifelse(result[[3]], col1, col2), labels = model$var_names, pch = ".")
+ }}
+  return(result)
+}
+
+
+
+#' Calculate what is learned from a set of observations, Ks, given existing data, W
+#'
+#' Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
+#' @param model a fitted biqq model
+#' @param f any function; defaults to f=var, posterior variance. For posterior mean set f = mean
+#' @param Ks  A matrix with one column per node indicating whther to be sought or not. Defaults to NULL
+#' @export
+#' @examples
+#' model <- biqq_model()
+#' operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA))
+#' query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0)
+#' biqq_learning(model,
+#'               operations,
+#'               query_v,
+#'               Ks = rbind(
+#'                      c(TRUE, FALSE, FALSE, FALSE, FALSE),
+#'                      c(FALSE, TRUE, FALSE, FALSE, FALSE),
+#'                      c(TRUE, TRUE, FALSE, FALSE, FALSE),
+#'                      c(TRUE, TRUE, FALSE, TRUE, FALSE),
+#'                      c(TRUE, TRUE, TRUE, TRUE, TRUE)
+#'          )
+#' )
+
+biqq_learning <- function(
+  model,
+  operations,
+  query_v,
+  sims=100,
+  U=NULL,
+  W  = rep(NA, length(model$var_names)),
+  Ks = NULL,  # Or a matrix with one column per node indicating whther to be sought or not
+  f=var){
+    if(!is.null(Ks) & is.null(dim(Ks))) Ks <- matrix(Ks, 1)
+    if(!is.null(Ks) & !is.matrix(Ks)) stop("Ks should be provided as a matrix with as many columns as elements in V")
+    if(is.null(U)) U <- (replicate(sims, model$P()))
+    result <- biqq_which(
+      model,
+      operations = operations,
+      query_v = query_v,
+      U=U,
+      plotit = FALSE)
+
+    inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
+    # Two cases: when W is not possible and when it is:
+    if(sum(inW) ==0 ) {      print("W is 0 probability event")
+      out <- c(f(result$A))
+      if(!is.null(Ks)) out <- c(out, rep(-1, 1+nrow(Ks)))
+
+    } else {   # Possible W
+
+      out <- c(f(result$A), f(result$A[inW]))
+
+      epv <- sapply(1:nrow(Ks), function(k) {
+        K <- Ks[k,]
+        Kranges <- apply(as.matrix(result$V[,K]), 2, function(j) length(unique(j)))  # the set of clues
+
+        if(!is.null(Ks) & length(Kranges)>0){
+          Ks <- perm(Kranges)
+          Kp <- rep(NA, length(K))
+          Kp <- t(sapply(1: nrow(Ks), function(i)  {Kp[K] <- Ks[i,]; return(Kp)}))  # Pattern of Ks
+
+
+          # Expected variance over all the combinations of K
+          pE_k <- sapply(1:nrow(Kp), function(j) {
+            Kv  <- Kp[j,]
+            inK <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == Kv))))
+            pKv <- mean(inK[inW])   # probability of K pattern, given W
+
+            V_given_WK <- f(result$A[inW & inK]) # 0 var for 0 prob event
+            if(sum(inW & inK)<=1)   V_given_WK <- 0
+            prior_V_given_W <- f(result$A)
+            c(pKv, V_given_WK)
+          })
+
+          Epostv <- sum(pE_k[1,]*pE_k[2,])
+        } else {
+          Epostv <- out[2]
+        }
+      })
+      out <- c(out, epv)
+    }
+
+    if(!is.null(Ks)) {names(out) <- c("Prior f", "f |W",
+                                      sapply(1:nrow(Ks), function(r) {paste(1*Ks[r,], collapse = "")} ))}
+
+    out
+  }
+
+
+
+#' Calculate a statistic given some model and a function f.
 #'
 #' Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
 #' @param model a fitted biqq model
@@ -157,7 +356,7 @@ Expected_Var <- function(k = 1, XY_base = rep(1,4), strategies = NULL, f = my_lo
   base_loss <- f(model)
 
 
-  x <- losses(k=k, XY_base = XY_base, strategies = strategies, f=f, ...)
+  x <- biqq:::losses(k=k, XY_base = XY_base, strategies = strategies, f=f, ...)
 
   # Probability of a given outcome given the strategy
   g <- function(j,
@@ -177,16 +376,19 @@ Expected_Var <- function(k = 1, XY_base = rep(1,4), strategies = NULL, f = my_lo
 
   # Probability of each outcome for each strategy
   p_each <- sapply(unique(strat_names), function(ss) {
-    sapply((1:nrow(x))[strat_names==ss], g)
-  })
+    pp <- sapply((1:nrow(x))[strat_names==ss], g)
+    names(pp) <- apply(x[strat_names==ss, c(6,8, 10, 12)], 1, paste, collapse = "")
+    pp  })
 
-  rnames <- paste("When", 0:(nrow(p_each)-1), "clues found: ")
-  if(length(rnames)>1) rnames[2] <- "When 1 clue found: "
-  rownames(p_each) <- rnames
+
 
   # Expected posterior variance associate with each strategy
-  var_each <- sapply(unique(strat_names), function(s) {x[strat_names==s, 13]})
-  rownames(var_each) <- rnames
+  var_each <- sapply(unique(strat_names), function(ss) {
+    v <- x[strat_names==ss, 13]
+    names(v) <- apply(x[strat_names==ss, c(6,8, 10, 12)], 1, paste, collapse = "")
+    v
+    })
+
 
   # Expected posterior variance associate with each strategy
   Ex_Post_var <- sapply(unique(strat_names), function(s) {

@@ -5,6 +5,7 @@
 #' @param XY  XY data -- 4-vector  00 01 10 11
 #' @param XYK XYK data -- 12-vector 000 001 010 011...
 #' @param XYK_data XYK data provided as a dataframe
+#' @param doubly_decisive if TRUE pobative value defaults to clue traces for a and b types only
 #' @return A stan object
 #' @export
 #'
@@ -20,7 +21,7 @@ biqq <- function(fit         = fit_biqq,
                                    0,  0,
                                    0,  0,
                                    0,  0),
-                 XYK_data    = NULL, # option to provide XYK as data fram
+                 XYK_data    = NULL, # option to provide XYK as data frame
                  alpha_prior = c(  1,  1,  1,  1),
                  pi_alpha    = c(  1,  1,  1,  1),
                  pi_beta     = c(  1,  1,  1,  1),
@@ -28,15 +29,21 @@ biqq <- function(fit         = fit_biqq,
                  q0_beta     = c(  1,  1,  1,  1),
                  q1_alpha    = c(  1,  1,  1,  1),
                  q1_beta     = c(  1,  1,  1,  1),
+                 doubly_decisive = FALSE,
                  iter        = 1000,
                  chains      = 2,
-                 thin        = 2,
-                 warmup      = 100,
-                 refresh     = round(warmup/2)
+                  ...
 )  {
 
   if(!is.null(XYK_data)) {XY  <- biqq_cases(XYK_data)[1:4]
                           XYX <- biqq_cases(XYK_data)[5:12]}
+  if(doubly_decisive){
+    q0_alpha  <- c(  1000,  1000,  1,  1)
+    q0_beta   <- c(  1,  1,  1000,  1000)
+    q1_alpha  <- c(  1000,  1000,  1,  1)
+    q1_beta   <- c(  1,  1,  1000,  1000)
+  }
+
   data <- list(
     XY         = XY,
     XYK         = XYK,
@@ -53,11 +60,7 @@ biqq <- function(fit         = fit_biqq,
     stan(fit     = fit,
          data    = data,
          iter    = iter,
-         chains  = chains,
-         warmup  = warmup,
-         verbose = FALSE,
-         refresh = refresh,
-         thin = thin)
+         chains  = chains)
   )
 
   return(posterior)
