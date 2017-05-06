@@ -47,16 +47,13 @@ biqq_model <- function(
 #' M <- biqq_model()
 #' biqq_world(M, M$P())
 
-biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
+biqq_world <- function(model, U, do = NULL){
   n <- length(model$var_names)
-  if(!is.null(do)) for(i in 1:n){ if(!is.na(do[i])) {model$var_functions[[i]] <- function(U,V)  do[[i]]}}
-  V <- list()
-  if(unlistit) V <- rep(NA, n)
-
-  for(i in 1:n) V[[i]] <- model$var_functions[[i]](U,V)
+  if(!is.null(do)) for(i in 1:n){ if(!is.na(do[i])) {model$var_functions[[i]] <- function(U,V)  do[i]}}
+  V <- rep(NA,n)
+  for(i in 1:n) V[i] <- model$var_functions[[i]](U,V)
   names(V) = model$var_names
-  if(unlistit) V <- unlist(V)
-  V
+  unlist(V)
 }
 
 
@@ -66,11 +63,9 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 #' @param model A model, made using biqq_model
 #' @param operations  A set of operations
 #' @param query_v A query defined on outcomes on observables, V
-#' @param sims optional number of simulations for draws; defaults to 500 if U not defined
+#' @param sims optional number of simulations for draws
 #' @param U optional matrix of contexts (worlds)
 #' @param plotit Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE
-#' @param u1 index of context to plot
-#' @param u2 index of context to plot
 #' @export
 #'
 #' @examples
@@ -88,79 +83,43 @@ biqq_which <- function(
   model,
   operations,
   query_v,
-  unlistit = TRUE, # turn to FALSE for vector vars
   sims = NULL,
   U = NULL, # Optionally provide a matrix of worlds: Useful for keeping U fixed under different experiments. Each U should be a single number, not a vector.
   plotit = FALSE,
-  col1 = "black",
-  col2 = "pink") {
+  col1 = "red",
+  col2 = "blue") {
 
-  nU <- length(model$var_names)
-  if(is.null(U) & is.null(sims)) sims <- 500
+  nU <- length(model$P())
   if(is.null(U)) U <- (replicate(sims, model$P()))
   sims <- ncol(U)
   V <-  matrix(NA, sims, nU)
-  if(!unlistit) V <- list()  # for vectors this remains in a list, which is less useful for future functions that condition on V
   A  <- rep(NA, sims)
   k  <- length(operations)
 
   for(j in 1:sims){
     u  <- U[,j]
-    v  <- biqq_world(model, u, unlistit = unlistit)
+    v  <- biqq_world(model, u)
     x  <- list()
     a  <- rep(NA, k)
     for(i in 1:k){
-      x[[i]]  <- biqq_world(model, u, do = operations[[i]], unlistit = unlistit)
+      x[[i]]  <- biqq_world(model, u, do = operations[[i]])
     }
     A[j]  <- query_v(x)
-    if(unlistit)  V[j, ] <- v
-    if(!unlistit) V[[j]] <- v
+    V[j,] <- v
   }
 
-  if(!unlistit) {V <- t(matrix(unlist(V), ncol = sims))}  # Careful on this line to make sure dimensions are kept correctly
   V <- as.data.frame(V)
-  colnames(V) <- names(unlist(v))
+  colnames(V) <- model$var_names
 
   result <- list(U=U, V=V, A=A)
 
-  if(plotit) {
-      pairs(t(result[[1]]),
-            col = ifelse(result[[3]], col1, col2),
-            labels = model$var_names, pch = ".")
-    }
+  if(plotit) { if(dim(result[[1]])[1]>2){stop("graphing currently only possible for U shocks on 2 vars")
+    } else {
+      pairs(t(result[[1]]), col = ifelse(result[[3]], col1, col2), labels = model$var_names, pch = ".")
+ }}
   return(result)
 }
 
-#'
-#' Calculate the Probability that a binary clue K = 1, given W.
-#' K enters as a vector of the form c(TRUE, FALSE, ...)
-#'
-#' @param model A model, made using biqq_model
-#' @param operations  A set of operations
-#' @param query_v A query defined on outcomes on observables, V
-#' @param sims optional number of simulations for draws; defaults to 500 if U not defined
-#' @param W Preexisting data
-#' @param K Clues being looked for
-#' @export
-#'
-pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
-  if(is.null(dim(K))) K <- matrix(K, 1)
-  if(!is.matrix(K)) stop("Ks should be provide as a matrix with as many columns as elements in V")
-  if(sum(K)>1) stop("Include only one clue please")
-  if(is.null(U)) U <- (replicate(sims, model$P()))
-  sims <- ncol(U)
-  result <- biqq_which(
-    model,
-    operations = operations,
-    query_v = query_v,
-    U=U,
-    plotit = FALSE)
-  inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
-  # Two cases: when W is not possible and when it is:
-  if(sum(inW) ==0 ) {out <- NA
-  } else {   out <- mean(result$V[inW,K] == 1) } # ie
-  out
-}
 
 
 #' Calculate what is learned from a set of observations, Ks, given existing data, W
@@ -194,40 +153,39 @@ biqq_learning <- function(
   U=NULL,
   W  = rep(NA, length(model$var_names)),
   Ks = NULL,  # Or a matrix with one column per node indicating whther to be sought or not
-  f=var,
-  add_means = FALSE){
+  f=var){
     if(!is.null(Ks) & is.null(dim(Ks))) Ks <- matrix(Ks, 1)
     if(!is.null(Ks) & !is.matrix(Ks)) stop("Ks should be provided as a matrix with as many columns as elements in V")
     if(is.null(U)) U <- (replicate(sims, model$P()))
-
-    result <- biqq_which( model, operations = operations, query_v = query_v, U=U, plotit = FALSE)
+    result <- biqq_which(
+      model,
+      operations = operations,
+      query_v = query_v,
+      U=U,
+      plotit = FALSE)
 
     inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
     # Two cases: when W is not possible and when it is:
+
     if(sum(inW) ==0 ) {      print("W is 0 probability event")
       out <- c(f(result$A))
       if(!is.null(Ks)) out <- c(out, rep(-1, 1+nrow(Ks)))
-    } else {   # Possible W
+
+     } else {   # Possible W
 
       out <- c(f(result$A), f(result$A[inW]))
 
-      # Now go through each of the K patterns given in Ks, check all implied permutations
-      # of possible findings, get prob for each and post var for each
       epv <- sapply(1:nrow(Ks), function(k) {
-        K <- Ks[k,]   # strategy under consideration
+        K <- Ks[k,]
         Kranges <- apply(as.matrix(result$V[,K]), 2, function(j) length(unique(j)))  # the set of clues
 
         if(!is.null(Ks) & length(Kranges)>0){
-          K2s <- perm(Kranges)
-          Kp0 <- rep(NA, length(K))
-          Kp <- t(sapply(1: nrow(K2s), function(i)  {
-            Kout    <- Kp0
-            Kout[K] <- K2s[i,]
-            return(Kout)
-            }))  # Pattern of Ks
+          Ks2 <- perm(Kranges)
+          Kp <- rep(NA, length(K))
+          Kp <- t(sapply(1: nrow(Ks2), function(i)  {Kp[K] <- Ks2[i,]; return(Kp)}))  # Pattern of Ks
 
 
-          # Expected proba and variance over all the combinations of K
+          # Expected variance over all the combinations of K
           pE_k <- sapply(1:nrow(Kp), function(j) {
             Kv  <- Kp[j,]
             inK <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == Kv))))
@@ -235,8 +193,9 @@ biqq_learning <- function(
 
             V_given_WK <- f(result$A[inW & inK]) # 0 var for 0 prob event
             if(sum(inW & inK)<=1)   V_given_WK <- 0
+            prior_V_given_W <- f(result$A)
             c(pKv, V_given_WK)
-            })
+          })
 
           Epostv <- sum(pE_k[1,]*pE_k[2,])
         } else {
@@ -246,77 +205,12 @@ biqq_learning <- function(
       out <- c(out, epv)
     }
 
-
-    if(!is.null(Ks)) {names(out) <- c(
-                                      "Prior v", "v |W",
+    if(!is.null(Ks)) {names(out) <- c("Prior f", "f |W",
                                       sapply(1:nrow(Ks), function(r) {paste(1*Ks[r,], collapse = "")} ))}
-    if(add_means) out <- cbind(m = mean(result$A), mW = mean(result$A[inW]), out)
 
     out
   }
 
-
-#' Get matrix of possible Ws,
-#'
-#' @param model a fitted biqq model
-#' @param m Number of W variations to make
-#' @export
-#'
-possible_W <- function(n, m) {
-  W <- perm(rep(3, n))
-  W[W==2] <- NA
-  W <- W[apply(!is.na(W), 1, sum) <= m,]
-  W}
-
-#' Asssess expected learning from a host of strategies.
-#'
-#' @param model a fitted biqq model
-#' @export
-#'
-possible_K <- function(n, m) {
-  K <- perm(rep(2, n))
-  K <- K[rowSums(K) <= m,]
-  K==1}
-
-#' Asssess expected learning from a host of strategies.
-#'
-#' @param model a fitted biqq model
-#' @param m_w Number of Ws to look at
-#' @param m_k Number of Ks to look at
-#' @export
-#'
-
-biqq_strategies <- function(model,
-                            operations,
-                            query_v,
-                            n = length(model$var_names),
-                            m_W =1,
-                            m_K = 1,
-                            possible_Ws = possible_W(n, m_W),
-                            possible_Ks = possible_K(n, m_K),
-                            sims = 500,
-                            round = 2,
-                            Rsq = FALSE,
-                            f = var){
-  if(!is.matrix(possible_Ws)) stop("possible_Ws should be a matrix with a column for each V")
-  if(!is.matrix(possible_Ks)) stop("possible_Ks should be a matrix with a column for each V")
-  nW <- nrow(possible_Ws)
-  nK <- nrow(possible_Ks)
-  U  <- (replicate(sims, model$P()))
-
-  post_vars <- sapply(1:nW, function(i) {
-        biqq_learning(model, operations, query_v, U=U, W = possible_Ws[i,], K = possible_Ks, f=f)}
-      )
-  if(Rsq) {post_vars2 <- 1+t((t(post_vars) - post_vars[2,])/post_vars[2,])
-    post_vars[3:nrow(post_vars)] <- post_vars2[3:nrow(post_vars)]
-    }
-  post_vars <- round(t(post_vars), round)
-  # Add rownames that show the W data pattern
-  wn <- possible_Ws
-  wn[is.na(wn)] <- "-"
-  rownames(post_vars) <-  sapply(1:nrow(wn), function(r) {paste(wn[r,], collapse = "")} )
-  post_vars
-}
 
 
 #' Calculate a statistic given some model and a function f.

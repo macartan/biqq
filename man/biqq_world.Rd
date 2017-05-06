@@ -4,7 +4,7 @@
 \alias{biqq_world}
 \title{Function to generate a world from a structural model}
 \usage{
-biqq_world(model, U, do = NULL)
+biqq_world(model, U = model$P(), do = NULL, unlistit = TRUE)
 }
 \arguments{
 \item{model}{A model, made using biqq_model}

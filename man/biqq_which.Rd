@@ -4,8 +4,8 @@
 \alias{biqq_which}
 \title{A function to figure out which worlds satisfy some query}
 \usage{
-biqq_which(model, operations, query_v, sims = NULL, U = NULL,
-  plotit = FALSE, col1 = "red", col2 = "blue")
+biqq_which(model, operations, query_v, unlistit = TRUE, sims = NULL,
+  U = NULL, plotit = FALSE, col1 = "black", col2 = "pink")
 }
 \arguments{
 \item{model}{A model, made using biqq_model}
@@ -14,11 +14,15 @@ biqq_which(model, operations, query_v, sims = NULL, U = NULL,
 
 \item{query_v}{A query defined on outcomes on observables, V}
 
-\item{sims}{optional number of simulations for draws}
+\item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
 
 \item{U}{optional matrix of contexts (worlds)}
 
 \item{plotit}{Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE}
+
+\item{u1}{index of context to plot}
+
+\item{u2}{index of context to plot}
 }
 \description{
 A function to figure out which worlds satisfy some query
