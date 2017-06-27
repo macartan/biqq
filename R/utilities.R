@@ -190,7 +190,7 @@ biqq_learning <- function(
   model,
   operations,
   query_v,
-  sims=100,
+  sims=1000,
   U=NULL,
   W  = rep(NA, length(model$var_names)),
   Ks = NULL,  # Or a matrix with one column per node indicating whther to be sought or not

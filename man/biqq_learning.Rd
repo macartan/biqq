@@ -4,7 +4,7 @@
 \alias{biqq_learning}
 \title{Calculate what is learned from a set of observations, Ks, given existing data, W}
 \usage{
-biqq_learning(model, operations, query_v, sims = 100, U = NULL,
+biqq_learning(model, operations, query_v, sims = 1000, U = NULL,
   W = rep(NA, length(model$var_names)), Ks = NULL, f = var,
   add_means = FALSE)
 }
