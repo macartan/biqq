@@ -305,7 +305,7 @@ biqq_strategies <- function(model,
   U  <- (replicate(sims, model$P()))
 
   post_vars <- sapply(1:nW, function(i) {
-        biqq_learning(model, operations, query_v, U=U, W = possible_Ws[i,], K = possible_Ks, f=f)}
+        biqq_learning(model, operations, query_v, sims = sims, U=U, W = possible_Ws[i,], K = possible_Ks, f=f)}
       )
   if(Rsq) {post_vars2 <- 1+t((t(post_vars) - post_vars[2,])/post_vars[2,])
     post_vars[3:nrow(post_vars)] <- post_vars2[3:nrow(post_vars)]
