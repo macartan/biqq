@@ -4,8 +4,8 @@
 \alias{biqq_learning}
 \title{Calculate what is learned from a set of observations, Ks, given existing data, W}
 \usage{
-biqq_learning(model, operations, query_v, sims = 2000, U = NULL,
-  W = rep(NA, length(model$var_names)), Ks = NULL, f = var,
+biqq_learning(model, operations, query, sims = 2000, U = NULL,
+  observed = NULL, W = NULL, clues_sought = NULL, Ks = NULL, f = var,
   add_means = FALSE, detail = FALSE, detailround = 5)
 }
 \arguments{
@@ -13,19 +13,21 @@ biqq_learning(model, operations, query_v, sims = 2000, U = NULL,
 
 \item{operations}{A set of operations}
 
-\item{query_v}{A query defined on outcomes on observables, V}
+\item{query}{A query defined on outcomes on observables, V}
 
 \item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
 
-\item{W}{Vector indicating what is known on each node. Values NA, 0, 1 etc}
+\item{observed}{Vector indicating what is known on each node. Values NA, 0, 1 etc}
 
-\item{Ks}{A TRUE/FALSE matrix with one column per node indicating which clues to be sought}
+\item{W}{Alternative argument for observed: Vector indicating what is known on each node. Values NA, 0, 1 etc. Ignored if `observed` is specified}
+
+\item{clues_sought}{A TRUE/FALSE matrix with one column per node indicating which clues to be sought}
+
+\item{Ks}{Alternative argument for clues_sought. TRUE/FALSE matrix with one column per node indicating which clues to be sought. Ignored if `clues_sought` is specified}
 
 \item{f}{any function; defaults to f=var, posterior variance. For posterior mean set f = mean}
 
 \item{detail}{defaults to FALSE. When TRUE output includes listing of possible patterns and probability of each}
-
-\item{Ks}{A matrix with one column per node indicating whther to be sought or not. Defaults to NULL}
 }
 \description{
 Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
@@ -33,10 +35,10 @@ Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
 \examples{
 model <- biqq_model()
 operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA))
-query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0)
+query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0)
 biqq_learning(model,
               operations,
-              query_v,
+              query,
               Ks = rbind(
                      c(TRUE, FALSE, FALSE, FALSE, FALSE),
                      c(FALSE, TRUE, FALSE, FALSE, FALSE),

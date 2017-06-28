@@ -5,14 +5,14 @@
 \title{Calculate the Probability that a binary clue K = 1, given W.
 K enters as a vector of the form c(TRUE, FALSE, ...)}
 \usage{
-pKw(model, operations, query_v, sims = NULL, U = NULL, W, K)
+pKw(model, operations, query, sims = NULL, U = NULL, W, K)
 }
 \arguments{
 \item{model}{A model, made using biqq_model}
 
 \item{operations}{A set of operations}
 
-\item{query_v}{A query defined on outcomes on observables, V}
+\item{query}{A query defined on outcomes on observables, V}
 
 \item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
 

@@ -65,7 +65,7 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 #'
 #' @param model A model, made using biqq_model
 #' @param operations  A set of operations
-#' @param query_v A query defined on outcomes on observables, V
+#' @param query A query defined on outcomes on observables, V
 #' @param sims optional number of simulations for draws; defaults to 500 if U not defined
 #' @param U optional matrix of contexts (worlds)
 #' @param plotit Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE
@@ -79,7 +79,7 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 #' biqq_which(
 #'    model,
 #'    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
-#'    query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
+#'    query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
 #'    sims = 500,
 #'    plotit = TRUE)
 #'
@@ -87,7 +87,7 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 biqq_which <- function(
   model,
   operations,
-  query_v,
+  query,
   unlistit = TRUE, # turn to FALSE for vector vars
   sims = NULL,
   U = NULL, # Optionally provide a matrix of worlds: Useful for keeping U fixed under different experiments. Each U should be a single number, not a vector.
@@ -112,7 +112,7 @@ biqq_which <- function(
     for(i in 1:k){
       x[[i]]  <- biqq_world(model, u, do = operations[[i]], unlistit = unlistit)
     }
-    A[j]  <- query_v(x)
+    A[j]  <- query(x)
     if(unlistit)  V[j, ] <- v
     if(!unlistit) V[[j]] <- v
   }
@@ -137,13 +137,13 @@ biqq_which <- function(
 #'
 #' @param model A model, made using biqq_model
 #' @param operations  A set of operations
-#' @param query_v A query defined on outcomes on observables, V
+#' @param query A query defined on outcomes on observables, V
 #' @param sims optional number of simulations for draws; defaults to 500 if U not defined
 #' @param W Preexisting data
 #' @param K Clues being looked for
 #' @export
 #'
-pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
+pKw <- function(model, operations, query, sims=NULL, U=NULL, W, K){
   if(is.null(dim(K))) K <- matrix(K, 1)
   if(!is.matrix(K)) stop("Ks should be provide as a matrix with as many columns as elements in V")
   if(sum(K)>1) stop("Include only one clue please")
@@ -152,7 +152,7 @@ pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
   result <- biqq_which(
     model,
     operations = operations,
-    query_v = query_v,
+    query = query,
     U=U,
     plotit = FALSE)
   inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
@@ -168,21 +168,22 @@ pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
 #' Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
 #' @param model A model, made using biqq_model
 #' @param operations  A set of operations
-#' @param query_v A query defined on outcomes on observables, V
-#' @param W  Vector indicating what is known on each node. Values NA, 0, 1 etc
-#' @param Ks A TRUE/FALSE matrix with one column per node indicating which clues to be sought
+#' @param query A query defined on outcomes on observables, V
+#' @param observed  Vector indicating what is known on each node. Values NA, 0, 1 etc
+#' @param W  Alternative argument for observed: Vector indicating what is known on each node. Values NA, 0, 1 etc. Ignored if `observed` is specified
+#' @param clues_sought  A TRUE/FALSE matrix with one column per node indicating which clues to be sought
+#' @param Ks Alternative argument for clues_sought. TRUE/FALSE matrix with one column per node indicating which clues to be sought. Ignored if `clues_sought` is specified
 #' @param sims optional number of simulations for draws; defaults to 500 if U not defined
 #' @param f any function; defaults to f=var, posterior variance. For posterior mean set f = mean
-#' @param Ks  A matrix with one column per node indicating whther to be sought or not. Defaults to NULL
 #' @param detail defaults to FALSE. When TRUE output includes listing of possible patterns and probability of each
 #' @export
 #' @examples
 #' model <- biqq_model()
 #' operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA))
-#' query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0)
+#' query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0)
 #' biqq_learning(model,
 #'               operations,
-#'               query_v,
+#'               query,
 #'               Ks = rbind(
 #'                      c(TRUE, FALSE, FALSE, FALSE, FALSE),
 #'                      c(FALSE, TRUE, FALSE, FALSE, FALSE),
@@ -195,22 +196,27 @@ pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
 biqq_learning <- function(
   model,
   operations,
-  query_v,
+  query,
   sims=2000,
-  U=NULL,
-  W  = rep(NA, length(model$var_names)),
+  U  = NULL,
+  observed = NULL,
+  W  = NULL,
+  clues_sought = NULL,
   Ks = NULL,  # Or a matrix with one column per node indicating whther to be sought or not
   f=var,
   add_means = FALSE,
   detail = FALSE,  # provide detailed output on clue probabilities
   detailround = 5 # Digits on rounding for detailed output
   ){
+    if(!is.null(observed)) W <- observed
+    if(is.null(W))         W <- rep(NA, length(model$var_names))
+    if(!is.null(clues_sought)) Ks <- clues_sought
     if(!is.null(Ks) & is.null(dim(Ks))) Ks <- matrix(Ks, 1)
     if(!is.null(Ks) & !is.matrix(Ks)) stop("Ks should be provided as a matrix with as many columns as elements in V")
     if(is.null(U)) U       <- replicate(sims, model$P())
     if(detail)     DETAILS <- list()
 
-    result <- biqq_which( model, operations = operations, query_v = query_v, U=U, plotit = FALSE)
+    result <- biqq_which( model, operations = operations, query = query, U=U, plotit = FALSE)
     inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
 
     # Two cases:
@@ -316,13 +322,13 @@ possible_K <- function(n, m) {
 
 biqq_strategies <- function(model,
                             operations,
-                            query_v,
+                            query,
                             n = length(model$var_names),
                             m_W =1,
                             m_K = 1,
                             possible_Ws = possible_W(n, m_W),
                             possible_Ks = possible_K(n, m_K),
-                            sims = 500,
+                            sims = 2000,
                             round = 2,
                             Rsq = FALSE,
                             f = var,
@@ -334,7 +340,9 @@ biqq_strategies <- function(model,
   U  <- (replicate(sims, model$P()))
 
   post_vars <- sapply(1:nW, function(i) {
-        biqq_learning(model, operations, query_v, sims = sims, U=U, W = possible_Ws[i,], K = possible_Ks, f=f)}
+        biqq_learning(model, operations, query, sims = sims, U=U,
+                      W = possible_Ws[i,],
+                      K = possible_Ks, f=f)}
       )
   if(Rsq) {post_vars2 <- 1+t((t(post_vars) - post_vars[2,])/post_vars[2,])
     post_vars[3:nrow(post_vars)] <- post_vars2[3:nrow(post_vars)]

@@ -4,7 +4,7 @@
 \alias{biqq_which}
 \title{A function to figure out which worlds satisfy some query}
 \usage{
-biqq_which(model, operations, query_v, unlistit = TRUE, sims = NULL,
+biqq_which(model, operations, query, unlistit = TRUE, sims = NULL,
   U = NULL, plotit = FALSE, col1 = "black", col2 = "pink")
 }
 \arguments{
@@ -12,7 +12,7 @@ biqq_which(model, operations, query_v, unlistit = TRUE, sims = NULL,
 
 \item{operations}{A set of operations}
 
-\item{query_v}{A query defined on outcomes on observables, V}
+\item{query}{A query defined on outcomes on observables, V}
 
 \item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
 
@@ -33,7 +33,7 @@ biqq_world(M, M$P())
 biqq_which(
    model,
    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
-   query_v = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
+   query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
    sims = 500,
    plotit = TRUE)
 
