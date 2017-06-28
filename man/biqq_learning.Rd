@@ -4,16 +4,28 @@
 \alias{biqq_learning}
 \title{Calculate what is learned from a set of observations, Ks, given existing data, W}
 \usage{
-biqq_learning(model, operations, query_v, sims = 1000, U = NULL,
+biqq_learning(model, operations, query_v, sims = 2000, U = NULL,
   W = rep(NA, length(model$var_names)), Ks = NULL, f = var,
-  add_means = FALSE)
+  add_means = FALSE, detail = FALSE, detailround = 5)
 }
 \arguments{
-\item{model}{a fitted biqq model}
+\item{model}{A model, made using biqq_model}
 
-\item{Ks}{A matrix with one column per node indicating whther to be sought or not. Defaults to NULL}
+\item{operations}{A set of operations}
+
+\item{query_v}{A query defined on outcomes on observables, V}
+
+\item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
+
+\item{W}{Vector indicating what is known on each node. Values NA, 0, 1 etc}
+
+\item{Ks}{A TRUE/FALSE matrix with one column per node indicating which clues to be sought}
 
 \item{f}{any function; defaults to f=var, posterior variance. For posterior mean set f = mean}
+
+\item{detail}{defaults to FALSE. When TRUE output includes listing of possible patterns and probability of each}
+
+\item{Ks}{A matrix with one column per node indicating whther to be sought or not. Defaults to NULL}
 }
 \description{
 Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model

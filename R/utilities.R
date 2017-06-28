@@ -166,9 +166,15 @@ pKw <- function(model, operations, query_v, sims=NULL, U=NULL, W, K){
 #' Calculate what is learned from a set of observations, Ks, given existing data, W
 #'
 #' Defaults to the posterior variance on lambda_b - lambda_a for simple biqq model
-#' @param model a fitted biqq model
+#' @param model A model, made using biqq_model
+#' @param operations  A set of operations
+#' @param query_v A query defined on outcomes on observables, V
+#' @param W  Vector indicating what is known on each node. Values NA, 0, 1 etc
+#' @param Ks A TRUE/FALSE matrix with one column per node indicating which clues to be sought
+#' @param sims optional number of simulations for draws; defaults to 500 if U not defined
 #' @param f any function; defaults to f=var, posterior variance. For posterior mean set f = mean
 #' @param Ks  A matrix with one column per node indicating whther to be sought or not. Defaults to NULL
+#' @param detail defaults to FALSE. When TRUE output includes listing of possible patterns and probability of each
 #' @export
 #' @examples
 #' model <- biqq_model()
@@ -190,34 +196,46 @@ biqq_learning <- function(
   model,
   operations,
   query_v,
-  sims=1000,
+  sims=2000,
   U=NULL,
   W  = rep(NA, length(model$var_names)),
   Ks = NULL,  # Or a matrix with one column per node indicating whther to be sought or not
   f=var,
-  add_means = FALSE){
+  add_means = FALSE,
+  detail = FALSE,  # provide detailed output on clue probabilities
+  detailround = 5 # Digits on rounding for detailed output
+  ){
     if(!is.null(Ks) & is.null(dim(Ks))) Ks <- matrix(Ks, 1)
     if(!is.null(Ks) & !is.matrix(Ks)) stop("Ks should be provided as a matrix with as many columns as elements in V")
-    if(is.null(U)) U <- (replicate(sims, model$P()))
+    if(is.null(U)) U       <- replicate(sims, model$P())
+    if(detail)     DETAILS <- list()
 
     result <- biqq_which( model, operations = operations, query_v = query_v, U=U, plotit = FALSE)
-
     inW <- sapply(1:sims, function(i) !(0 %in% (1*(result$V[i,] == W))))
-    # Two cases: when W is not possible and when it is:
+
+    # Two cases:
+    # Impossible W:
     if(sum(inW) ==0 ) {      print("W is 0 probability event")
       out <- c(f(result$A))
       if(!is.null(Ks)) out <- c(out, rep(-1, 1+nrow(Ks)))
-    } else {   # Possible W
+    } else {
+      # Possible W
 
       out <- c(f(result$A), f(result$A[inW]))
-
       # Now go through each of the K patterns given in Ks, check all implied permutations
       # of possible findings, get prob for each and post var for each
-      epv <- sapply(1:nrow(Ks), function(k) {
+      epv <- rep(NA, nrow(Ks))
+
+      for(k in 1:nrow(Ks)) {
+
         K <- Ks[k,]   # strategy under consideration
+
         Kranges <- apply(as.matrix(result$V[,K]), 2, function(j) length(unique(j)))  # the set of clues
 
-        if(!is.null(Ks) & length(Kranges)>0){
+        if(is.null(Ks) | !(length(Kranges)>0)) { epv[k] <- out[2]}
+
+        if(!is.null(Ks)  & (length(Kranges)>0)) {
+
           K2s <- perm(Kranges)
           Kp0 <- rep(NA, length(K))
           Kp <- t(sapply(1: nrow(K2s), function(i)  {
@@ -225,7 +243,6 @@ biqq_learning <- function(
             Kout[K] <- K2s[i,]
             return(Kout)
             }))  # Pattern of Ks
-
 
           # Expected proba and variance over all the combinations of K
           pE_k <- sapply(1:nrow(Kp), function(j) {
@@ -239,10 +256,18 @@ biqq_learning <- function(
             })
 
           Epostv <- sum(pE_k[1,]*pE_k[2,])
-        } else {
-          Epostv <- out[2]
+
+          if(detail) {
+            pattern <- sapply(1:nrow(Kp), function(i)  paste(Kp[i,], collapse = "-"))
+            x <- rbind(pattern, round(pE_k,detailround))
+            rownames(x) <- c("K-pattern", "prob pattern", "var|pattern");
+            DETAILS[[k]] <- x  }
+
+          epv[k] <- Epostv
+
         }
-      })
+      }
+
       out <- c(out, epv)
     }
 
@@ -250,7 +275,10 @@ biqq_learning <- function(
     if(!is.null(Ks)) {names(out) <- c(
                                       "Prior v", "v |W",
                                       sapply(1:nrow(Ks), function(r) {paste(1*Ks[r,], collapse = "")} ))}
+
     if(add_means) out <- cbind(m = mean(result$A), mW = mean(result$A[inW]), out)
+
+    if(detail) out <- list(out, DETAILS)
 
     out
   }
@@ -297,7 +325,8 @@ biqq_strategies <- function(model,
                             sims = 500,
                             round = 2,
                             Rsq = FALSE,
-                            f = var){
+                            f = var,
+                            symbol_unknown ="?"){
   if(!is.matrix(possible_Ws)) stop("possible_Ws should be a matrix with a column for each V")
   if(!is.matrix(possible_Ks)) stop("possible_Ks should be a matrix with a column for each V")
   nW <- nrow(possible_Ws)
@@ -313,7 +342,7 @@ biqq_strategies <- function(model,
   post_vars <- round(t(post_vars), round)
   # Add rownames that show the W data pattern
   wn <- possible_Ws
-  wn[is.na(wn)] <- "-"
+  wn[is.na(wn)] <- symbol_unknown
   rownames(post_vars) <-  sapply(1:nrow(wn), function(r) {paste(wn[r,], collapse = "")} )
   post_vars
 }

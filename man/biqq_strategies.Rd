@@ -7,7 +7,7 @@
 biqq_strategies(model, operations, query_v, n = length(model$var_names),
   m_W = 1, m_K = 1, possible_Ws = possible_W(n, m_W),
   possible_Ks = possible_K(n, m_K), sims = 500, round = 2, Rsq = FALSE,
-  f = var)
+  f = var, symbol_unknown = "?")
 }
 \arguments{
 \item{model}{a fitted biqq model}
