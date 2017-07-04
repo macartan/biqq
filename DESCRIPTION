@@ -5,7 +5,7 @@ Authors@R: c(person("Macartan", "Humphreys", email = "macartan@gmail.com", role 
              person("Alan", "Jacobs", email = "alan.jacobs@ubc.ca", role = c("aut")))
 Description: Package provides necessary functions to run application examples from the paper, as well as framework for applying BIQQ to user-defined Stan program.
 Depends:
-    R (>= 3.3.1),
+    R (>= 2.3.1),
     rstan,
     parallel,
     ggplot2
