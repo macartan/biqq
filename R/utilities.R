@@ -488,13 +488,19 @@ prob_k_seen <- function(model, k = c(1,1,1,1)){
 #' @return A list
 #' @export
 #' @examples
-#' Expected_Var(k = 1, XY_base = rep(1,4), chains = 2)
-#' Expected_Var(k = 1, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
-#' Expected_Var(k = 2, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
+#' biqq_E_Var(k = 1, XY_base = rep(1,4), chains = 2)
+#' biqq_E_Var(k = 1, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
+#' biqq_E_Var(k = 2, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
 
-Expected_Var <- function(k = 1, XY_base = rep(1,4), strategies = NULL, f = my_loss, name = "Results",  ...){
+biqq_E_Var <- function(k = 1, 
+                         XY_base = rep(1,4), 
+                         strategies = NULL, 
+                         f = my_loss, 
+                         name = "Results", 
+                         biqq_model = biqq, 
+                         ...){
 
-  model <- biqq(XY = XY_base, ...)
+  model <- biqq_model(XY = XY_base, ...)
   D <-extract(model, pars='abcd')
   base_ate <-  {mean(D$abcd[,2]-D$abcd[,1])}
   base_loss <- f(model)

@@ -16,7 +16,7 @@
 
 biqq <- function(fit         = fit_biqq,
 
-                 XY          = c(  1,  1,  1, 1),
+                 XY          = c(  0,0,0,0),
                  XYK         = c(  0,  0,
                                    0,  0,
                                    0,  0,
