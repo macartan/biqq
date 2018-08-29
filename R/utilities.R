@@ -39,9 +39,9 @@ biqq_model <- function(
 
 #' Function to generate a world from a structural model
 #'
-#' @param model A model, made using biqq_model
+#' @param model A model made using biqq_model
 #' @param U  A context. Generally generated using model$P()
-#' @param do an optional  list of do operations on nodes
+#' @param do an optional list of do operations on nodes
 #' @export
 #' @examples
 #' M <- biqq_model()
@@ -49,7 +49,10 @@ biqq_model <- function(
 
 biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
   n <- length(model$var_names)
-  if(!is.null(do)) for(i in 1:n){ if(!is.na(do[i])) {model$var_functions[[i]] <- function(U,V)  do[[i]]}}
+  if(!is.null(do)) for(i in 1:n){
+    if(!is.na(do[i])) {
+    model$var_functions[[i]] <- function(U,V)  do[[i]]
+    }}
   V <- list()
   if(unlistit) V <- rep(NA, n)
 
@@ -63,21 +66,20 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 
 #' A function to figure out which worlds satisfy some query
 #'
-#' @param model A model, made using biqq_model
-#' @param operations  A set of operations
-#' @param query A query defined on outcomes on observables, V
-#' @param sims optional number of simulations for draws; defaults to 500 if U not defined
-#' @param U optional matrix of contexts (worlds)
-#' @param plotit Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE
-#' @param u1 index of context to plot
-#' @param u2 index of context to plot
+#' @param model A model made using biqq_model.
+#' @param operations  A set of operations.
+#' @param query A query defined on outcomes on observables, V.
+#' @param sims Optional number of simulations for draws; defaults to 500 if U not defined.
+#' @param U Optional matrix of contexts (worlds).
+#' @param plotit Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE.
+#' @param u1 Index of context to plot.
+#' @param u2 Index of context to plot.
 #' @export
 #'
 #' @examples
 #' M <- biqq_model()
-#' biqq_world(M, M$P())
 #' biqq_which(
-#'    model,
+#'    M,
 #'    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
 #'    query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
 #'    sims = 500,
@@ -492,12 +494,12 @@ prob_k_seen <- function(model, k = c(1,1,1,1)){
 #' biqq_E_Var(k = 1, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
 #' biqq_E_Var(k = 2, XY_base = rep(1,4), chains = 2, strategies = c("1-0-0-1"))
 
-biqq_E_Var <- function(k = 1, 
-                         XY_base = rep(1,4), 
-                         strategies = NULL, 
-                         f = my_loss, 
-                         name = "Results", 
-                         biqq_model = biqq, 
+biqq_E_Var <- function(k = 1,
+                         XY_base = rep(1,4),
+                         strategies = NULL,
+                         f = my_loss,
+                         name = "Results",
+                         biqq_model = biqq,
                          ...){
 
   model <- biqq_model(XY = XY_base, ...)
