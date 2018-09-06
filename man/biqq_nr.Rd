@@ -4,11 +4,12 @@
 \alias{biqq_nr}
 \title{BIQQ Model for Natural Resource Curse Example}
 \usage{
-biqq_nr(fit = NULL, XYKK = c(61, 6, 64, 1, 1, 3), alpha_prior = rep(1,
-  times = 4), pi_alpha = rep(1, times = 4), pi_beta = rep(1, times = 4),
-  q1bd1_alpha = c(1, 1), q1bd1_beta = c(1, 1), q2bd1_alpha = c(1, 1),
-  q2bd1_beta = c(1, 1), iter = 20000, chains = 4, warmup = 5000,
-  seed = 1000, cores = 1)
+biqq_nr(fit = NULL, XYKK = c(61, 6, 64, 1, 1, 3),
+  alpha_prior = rep(1, times = 4), pi_alpha = rep(1, times = 4),
+  pi_beta = rep(1, times = 4), q1bd1_alpha = c(1, 1),
+  q1bd1_beta = c(1, 1), q2bd1_alpha = c(1, 1), q2bd1_beta = c(1, 1),
+  iter = 20000, chains = 4, warmup = 5000, seed = 1000,
+  cores = 1)
 }
 \arguments{
 \item{fit}{Stan model fit object}

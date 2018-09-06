@@ -5,8 +5,8 @@
 \title{Calculate what is learned from a set of observations, Ks, given existing data, W}
 \usage{
 biqq_learning(model, operations, query, sims = 2000, U = NULL,
-  observed = NULL, W = NULL, clues_sought = NULL, Ks = NULL, f = var,
-  add_means = FALSE, detail = FALSE, detailround = 5)
+  observed = NULL, W = NULL, clues_sought = NULL, Ks = NULL,
+  f = var, add_means = FALSE, detail = FALSE, detailround = 5)
 }
 \arguments{
 \item{model}{A model, made using biqq_model}

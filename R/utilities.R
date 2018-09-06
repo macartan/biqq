@@ -1,8 +1,9 @@
 
 #' Generate permutations
-#' \code{perm} generates all posible permutations of the elements of a vector. Each row contains is a permuation.
-#' @param v A vector.
-#' @return A matrix containing all permutations of the elements of vector \code{v}.
+#'
+#' Generate all posible permutations of the elements of a vector \code{v}. Each row in the output matrix contains a different permutation.
+#' @param v a vector.
+#' @return a matrix containing all permutations of the elements of vector \code{v}.
 #' @export
 #' @examples
 #' perm(v = c(2,2,2))
@@ -16,12 +17,13 @@ perm <- function (v) {
 
 
 #' Declare a structural model
+#'
 #' Declare a set of exogenous and endogenous variables and a set of functions,
 #' \code{var_functions}, indicating how variables are affected by each other.
 #'
-#' @param var_functions a list of structural equations.
+#' @param var_functions a list of structural equations. Each element in the list must be a function specifying how each variable relates to its direct causes. Causes's functions should be specified before effects' functions i.e. if \code{X} causes \code{Y} then \code{f_X} should be specified before \code{f_Y}.
 #' @param var_names an optional list of node names.
-#' @param P a function to generate a context. A joint probability distribution over the exogenous variables, \code{U}.
+#' @param P a function to generate a context. The joint probability distribution over the exogenous variables, \code{U}.
 #' @return a list containing the declared model.
 #' @export
 #' @examples
@@ -44,10 +46,11 @@ biqq_model <- function(
 
 #' Function to generate a world from a structural model
 #'
-#' @param model a model made using biqq_model.
-#' @param U  a context. Generally generated using model$P().
-#' @param do an optional list of do operations on nodes.
-#' @return  a world.
+#'
+#' @param model a model made using  \code{\link{biqq_model}}.
+#' @param U  a context. A realization of the exogenous variables in the structural model. Generally generated using \code{model$P()}.
+#' @param do an optional list of do operations on nodes. An intervention.
+#' @return a world.
 #' @export
 #' @examples
 #' M <- biqq_model()
@@ -72,7 +75,7 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 
 #' A function to figure out which worlds satisfy some query
 #'
-#' @param model A model made using biqq_model.
+#' @param model A model made using \code{\link{biqq_model}}.
 #' @param operations  A set of operations.
 #' @param query A query defined on outcomes on observables, V.
 #' @param sims Optional number of simulations for draws; defaults to 500 if U not defined.
@@ -87,7 +90,7 @@ biqq_world <- function(model, U = model$P(), do = NULL, unlistit = TRUE){
 #' biqq_which(
 #'    M,
 #'    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
-#'    query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
+#'    query = function(x) (x[[1]][5] == 1) & (x[[2]][5] == 0),
 #'    sims = 500,
 #'    plotit = TRUE)
 #'

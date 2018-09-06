@@ -9,7 +9,8 @@ biqq_es_k(k, clue_data, fit = NULL, alpha_prior = rep(1, times = 4),
   q0_alpha = rep(1, times = 4), q0_beta = rep(1, times = 4),
   q1_alpha = rep(1, times = 4), q1_beta = rep(1, times = 4),
   extract_pars = "abcd", out_fun = function(x) {     mean(x$abcd[, 2] -
-  x$abcd[, 1]) }, iter = 8000, chains = 2, warmup = 1000, cores = 1)
+  x$abcd[, 1]) }, iter = 8000, chains = 2, warmup = 1000,
+  cores = 1)
 }
 \arguments{
 \item{k}{Integer. Number of clues sought}

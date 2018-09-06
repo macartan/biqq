@@ -4,8 +4,8 @@
 \alias{biqq_lower}
 \title{biqq from lower level model, taking data as arguments}
 \usage{
-biqq_lower(fit = fit_biqq_lower, XY = c(0, 0, 0, 0), XYK = c(0, 0, 0, 0,
-  0, 0, 0, 0), XYK_data = NULL, Y_u_prior = rep(0.5, 16),
+biqq_lower(fit = fit_biqq_lower, XY = c(0, 0, 0, 0), XYK = c(0, 0, 0,
+  0, 0, 0, 0, 0), XYK_data = NULL, Y_u_prior = rep(0.5, 16),
   K_u_prior = rep(0.5, 4), pi_alpha = matrix(0.5, 16, 4),
   pi_beta = matrix(0.5, 16, 4), doubly_decisive = FALSE, iter = 1000,
   chains = 2, ...)
