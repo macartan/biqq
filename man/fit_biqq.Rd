@@ -4,7 +4,7 @@
 \name{fit_biqq}
 \alias{fit_biqq}
 \title{Stan object}
-\format{fitted stand object}
+\format{fitted stan object}
 \usage{
 fit_biqq
 }

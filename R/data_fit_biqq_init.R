@@ -1,5 +1,5 @@
 #' Stan object
 #'
-#' @format fitted stand object
+#' @format fitted stan object
 
 "fit_biqq"
