@@ -4,8 +4,8 @@
 \alias{biqq_E_Var}
 \title{Function to identify possible case selection strategies and assess expected gains}
 \usage{
-biqq_E_Var(k = 1, XY_base = rep(1, 4), strategies = NULL, f = my_loss,
-  name = "Results", biqq_model = biqq, ...)
+biqq_E_Var(k = 1, XY_base = rep(1, 4), strategies = NULL,
+  f = my_loss, name = "Results", biqq_model = biqq, ...)
 }
 \arguments{
 \item{k}{A scalar saying how many clues are to be sought in total}

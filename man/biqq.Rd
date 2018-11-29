@@ -5,11 +5,11 @@
 \title{biqq function, taking data as arguments
 Basic model; used to define fast biqq function}
 \usage{
-biqq(fit = fit_biqq, XY = c(0, 0, 0, 0), XYK = c(0, 0, 0, 0, 0, 0, 0, 0),
-  XYK_data = NULL, alpha_prior = c(1, 1, 1, 1), pi_alpha = c(1, 1, 1, 1),
-  pi_beta = c(1, 1, 1, 1), q0_alpha = c(1, 1, 1, 1), q0_beta = c(1, 1, 1,
-  1), q1_alpha = c(1, 1, 1, 1), q1_beta = c(1, 1, 1, 1),
-  doubly_decisive = FALSE, iter = 1000, chains = 2, ...)
+biqq(fit = fit_biqq, XY = c(0, 0, 0, 0), XYK = c(0, 0, 0, 0, 0, 0, 0,
+  0), XYK_data = NULL, alpha_prior = c(1, 1, 1, 1), pi_alpha = c(1,
+  1, 1, 1), pi_beta = c(1, 1, 1, 1), q0_alpha = c(1, 1, 1, 1),
+  q0_beta = c(1, 1, 1, 1), q1_alpha = c(1, 1, 1, 1), q1_beta = c(1,
+  1, 1, 1), doubly_decisive = FALSE, iter = 1000, chains = 2, ...)
 }
 \arguments{
 \item{fit}{a fitted model}

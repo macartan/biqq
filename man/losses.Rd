@@ -4,8 +4,8 @@
 \alias{losses}
 \title{Calculate losses over multiple data possibilities}
 \usage{
-losses(XY_base = c(1, 1, 1, 1), k = 1, f = my_loss, strategies = NULL,
-  ...)
+losses(XY_base = c(1, 1, 1, 1), k = 1, f = my_loss,
+  strategies = NULL, ...)
 }
 \arguments{
 \item{XY_base}{XY data prior to considering K data}

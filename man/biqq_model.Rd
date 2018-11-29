@@ -5,10 +5,10 @@
 \title{Declare a structural model}
 \usage{
 biqq_model(var_functions = list(f_S = function(U, V) U[1] < 0.5, f_X =
-  function(U, V) U[2] < 0.5, f_C = function(U, V) (1 - (V[1] * V[2])) * (U[3] >
-  0.2) + (U[3] < 0.1), f_R = function(U, V) V[2] * V[3] * (U[4] > 0.2) + (U[4] <
-  0.1), f_Y = function(U, V) V[3] * V[4] * (U[5] > 0.2) + (U[5] < 0.1)),
-  var_names = 1:length(var_functions), P = function()
+  function(U, V) U[2] < 0.5, f_C = function(U, V) (1 - (V[1] * V[2])) *
+  (U[3] > 0.2) + (U[3] < 0.1), f_R = function(U, V) V[2] * V[3] * (U[4] >
+  0.2) + (U[4] < 0.1), f_Y = function(U, V) V[3] * V[4] * (U[5] > 0.2) +
+  (U[5] < 0.1)), var_names = 1:length(var_functions), P = function()
   runif(length(var_functions)))
 }
 \arguments{
