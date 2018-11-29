@@ -7,11 +7,14 @@
 biqq_world(model, U = model$P(), do = NULL, unlistit = TRUE)
 }
 \arguments{
-\item{model}{A model, made using biqq_model}
+\item{model}{a model made using  \code{\link{biqq_model}}.}
 
-\item{U}{A context. Generally generated using model$P()}
+\item{U}{a context. A realization of the exogenous variables in the structural model. Generally generated using \code{model$P()}.}
 
-\item{do}{an optional  list of do operations on nodes}
+\item{do}{an optional list of do operations on nodes. An intervention.}
+}
+\value{
+a world.
 }
 \description{
 Function to generate a world from a structural model

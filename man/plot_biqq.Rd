@@ -4,8 +4,8 @@
 \alias{plot_biqq}
 \title{BIQQ Model for Natural Resource Curse Example}
 \usage{
-plot_biqq(fit, title = "", x_fun = function(x) {     x$abcd[, 2] - x$abcd[,
-  1] }, x_name = "ATE", y_fun = function(x) {     x$pi_c },
+plot_biqq(fit, title = "", x_fun = function(x) {     x$abcd[, 2] -
+  x$abcd[, 1] }, x_name = "ATE", y_fun = function(x) {     x$pi_c },
   y_name = "Assignment propensity for c types",
   object_colors = c("darkcyan", "darkred"), adjust_value = 0.8)
 }

@@ -8,32 +8,31 @@ biqq_which(model, operations, query, unlistit = TRUE, sims = NULL,
   U = NULL, plotit = FALSE, col1 = "black", col2 = "pink")
 }
 \arguments{
-\item{model}{A model, made using biqq_model}
+\item{model}{A model made using \code{\link{biqq_model}}.}
 
-\item{operations}{A set of operations}
+\item{operations}{A set of operations.}
 
-\item{query}{A query defined on outcomes on observables, V}
+\item{query}{A query defined on outcomes on observables, V.}
 
-\item{sims}{optional number of simulations for draws; defaults to 500 if U not defined}
+\item{sims}{Optional number of simulations for draws; defaults to 500 if U not defined.}
 
-\item{U}{optional matrix of contexts (worlds)}
+\item{U}{Optional matrix of contexts (worlds).}
 
-\item{plotit}{Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE}
+\item{plotit}{Plot the results of the investigation as matrix of 2 way plots (pairs). Defaults to FALSE.}
 
-\item{u1}{index of context to plot}
+\item{u1}{Index of context to plot.}
 
-\item{u2}{index of context to plot}
+\item{u2}{Index of context to plot.}
 }
 \description{
 A function to figure out which worlds satisfy some query
 }
 \examples{
 M <- biqq_model()
-biqq_world(M, M$P())
 biqq_which(
-   model,
+   M,
    operations = list(c(0, NA, NA, NA, NA), c(1, NA, NA, NA, NA)),
-   query = function(x) (x[[1]][5] ==1) & (x[[2]][5] == 0),
+   query = function(x) (x[[1]][5] == 1) & (x[[2]][5] == 0),
    sims = 500,
    plotit = TRUE)
 
