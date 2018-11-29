@@ -12,14 +12,18 @@ biqq_model(var_functions = list(f_S = function(U, V) U[1] < 0.5, f_X =
   runif(length(var_functions)))
 }
 \arguments{
-\item{var_functions}{A list of structural equations}
+\item{var_functions}{a list of structural equations. Each element in the list must be a function specifying how each variable relates to its direct causes. Causes's functions should be specified before effects' functions i.e. if \code{X} causes \code{Y} then \code{f_X} should be specified before \code{f_Y}.}
 
-\item{var_names}{An optional list of node names}
+\item{var_names}{an optional list of node names.}
 
-\item{P}{An optional list of node names}
+\item{P}{a function to generate a context. The joint probability distribution over the exogenous variables, \code{U}.}
+}
+\value{
+a list containing the declared model.
 }
 \description{
-Declare a structural model
+Declare a set of exogenous and endogenous variables and a set of functions,
+\code{var_functions}, indicating how variables are affected by each other.
 }
 \examples{
 biqq_model()

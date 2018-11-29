@@ -7,10 +7,13 @@
 perm(v)
 }
 \arguments{
-\item{v}{a vector}
+\item{v}{a vector.}
+}
+\value{
+a matrix containing all permutations of the elements of vector \code{v}.
 }
 \description{
-Generate permutations
+Generate all posible permutations of the elements of a vector \code{v}. Each row in the output matrix contains a different permutation.
 }
 \examples{
 perm(v = c(2,2,2))
